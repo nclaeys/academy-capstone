@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "academy-capstone-jan"
+version = "0.1.0"
+description = ""
+authors = ["Jan Vanbuel <jan.vanbuel@dataminded.be>"]
+readme = "README.md"
+packages = [{ include = "src/capstone" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+boto3 = "^1.28.44"
+pyspark = "3.2.2"
+botocore = "^1.31.44"
+boto3-stubs = "^1.28.44"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+isort = "^5.12.0"
+ipykernel = "^6.25.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

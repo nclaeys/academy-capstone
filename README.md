@@ -1,8 +1,8 @@
 # Data Minded Academy Capstone
 
-Welcome to the Capstone project! Everything you've learned over the past days 
-will now be integrated in a realistic data pipeline. The training wheels are 
-off, but we're still at the sideline, cheering you on and supporting you when 
+Welcome to the Capstone project! Everything you've learned over the past days
+will now be integrated in a realistic data pipeline. The training wheels are
+off, but we're still at the sideline, cheering you on and supporting you when
 needed.
 
 In a nutshell, here's what you will do:
@@ -18,7 +18,7 @@ clicking the button below:
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/datamindedbe/academy-capstone)
 
-NOTE: When you fork the code repo to your own remote make sure to change the 
+NOTE: When you fork the code repo to your own remote make sure to change the
 Gitpod URL to reflect your account in this README!
 
 This is an ubuntu-based environment pre-installed with:
@@ -27,9 +27,9 @@ This is an ubuntu-based environment pre-installed with:
 - A Python3 virtual environment: we recommend you always work inside this environment.
 - The AWS CLI
 
-Before you start data crunching, set up your `$HOME/.aws/credentials` file. This is 
-required to access AWS services through the API. To do so, run `aws configure` in 
-the terminal and enter the correct information: 
+Before you start data crunching, set up your `$HOME/.aws/credentials` file. This is
+required to access AWS services through the API. To do so, run `aws configure` in
+the terminal and enter the correct information:
 
 ```shell
 AWS Access Key ID [None]: [YOUR_ACCESS_KEY]
@@ -38,38 +38,38 @@ Default region name [None]: eu-west-1
 Default output format [None]: json
 ```
 
-IMPORTANT: Create a new branch and periodically push your work to the remote. 
-After 30min of inactivity this environment shuts down and you will likely lose 
+IMPORTANT: Create a new branch and periodically push your work to the remote.
+After 30min of inactivity this environment shuts down and you will likely lose
 unsaved progress. As stated before, change the Gitpod URL to reflect your remote.
 
 ## Task 1: Extract, transform and load weather data from S3 to Snowflake
 
-Our team recently ingested Belgian weather data from the 
-[openaq](https://openaq.org/) API and stored it on AWS S3 under 
+Our team recently ingested Belgian weather data from the
+[openaq](https://openaq.org/) API and stored it on AWS S3 under
 `s3://dataminded-academy-capstone-resources/raw/open_aq/`.
 
-You are tasked with building a PySpark application that reads this data, 
-transforms it and stores it in a Snowflake Table for further analysis. 
+You are tasked with building a PySpark application that reads this data,
+transforms it and stores it in a Snowflake Table for further analysis.
 
 ### Step 1: Extract and transform
 
 Required transformations:
 
 - Flatten all nested columns
-  Several databases and data warehouses don't work well with nested columns. 
-  And even if they do, many analysts don't know how to pick the right 
+  Several databases and data warehouses don't work well with nested columns.
+  And even if they do, many analysts don't know how to pick the right
   information from them. So having non-complex 2 dimensional tables is a boon.
-- Some columns don't have the right datatype. Fix this, so that downstream 
+- Some columns don't have the right datatype. Fix this, so that downstream
   users may benefit from more efficient data types and related functionality.
 
 You can access the weather data through your AWS credentials. While working locally, you'll need to
-pass these to your spark application. In addition, your spark application requires 
+pass these to your spark application. In addition, your spark application requires
 the following JAR to interact with AWS S3 `org.apache.hadoop:hadoop-aws:3.1.2`.
 
 ### Step 2: Retrieve Snowflake credentials
 
 After you've successfully extracted and transformed the data, you can move on to loading said data to Snowflake.
-To this end, you'll require Snowflake credentials stored on AWS Secretsmanager 
+To this end, you'll require Snowflake credentials stored on AWS Secretsmanager
 under the following secret `snowflake/capstone/login`.
 
 Write Python code that retrieves this secret to leverage in the next step.
@@ -82,11 +82,11 @@ obtained in the previous step. Your Spark application will also require addition
 - `net.snowflake:spark-snowflake_2.12:2.9.0-spark_3.1`
 - `net.snowflake:snowflake-jdbc:3.13.3`
 
-Scan the Snowflake docs to figure out how to load data through Spark. All 
+Scan the Snowflake docs to figure out how to load data through Spark. All
 required configuration is stored in the AWS secret except the following:
 
 - Snowflake Schema: On Snowflake, we created individual schema's for every
-  participant. Write to your schema. The schema name is based on your 
+  participant. Write to your schema. The schema name is based on your
   username so login to Snowflake to retrieve it.
 - Table name: Feel free to use any table name you want
 
@@ -113,7 +113,7 @@ IMPORTANT NOTES:
 - While using the AWS console, make sure you are in the `eu-west-1` region. This is selected in the top right corner of the website.
 - Most resources you create will require a name that starts with your AWS username
 - Where applicable, you will need to tag every resource you create with:
-  
+
   `environment`: `academy-capstone-pxl-2023`
 
 ### Step 1: Containerize
@@ -134,13 +134,13 @@ With your image pushed to the repository, navigate to AWS Batch and create a new
 - Platform type: EC2
 - Execution role: `academy-capstone-pxl-2023-batch-job-role`
 - Job configuration:
-    - Image: Image you pushed during the previous step
-    - Command: Depends on your image:)
-    - Job Role Configuration: `academy-capstone-pxl-2023-batch-job-role`
+  - Image: Image you pushed during the previous step
+  - Command: Depends on your image:)
+  - Job Role Configuration: `academy-capstone-pxl-2023-batch-job-role`
 - Tags:
   - `environment`: `academy-capstone-pxl-2023`
-  
-After creating the job definition you can run it by submitting a new job. Again, apply the correct naming convention and tags. 
+
+After creating the job definition you can run it by submitting a new job. Again, apply the correct naming convention and tags.
 You can submit the job to the following queue: `academy-capstone-pxl-2023-job-queue`
 
 ### Step 4: Scheduling through MWAA
