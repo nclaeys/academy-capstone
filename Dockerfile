@@ -3,6 +3,7 @@ FROM public.ecr.aws/dataminded/spark-k8s-glue:v3.2.4-hadoop-3.3.5-v1
 USER 0
 COPY requirements.txt requirements.txt
 
+ENV PIP_NO_CACHE_DIR=1
 RUN pip install -r requirements.txt
 
 COPY . .

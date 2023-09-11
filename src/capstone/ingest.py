@@ -35,7 +35,7 @@ if __name__ == "__main__":
         )
         .config(
             "fs.s3a.aws.credentials.provider",
-            "com.amazonaws.auth.InstanceProfileCredentialsProvider,com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+            "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
         )
         .getOrCreate()
     )
@@ -69,6 +69,6 @@ if __name__ == "__main__":
 
     clean.write.format(SNOWFLAKE_SOURCE_NAME).options(**sfOptions).option(
         "dbtable", "open_aq"
-    ).save()
+    ).mode("overwrite").save()
 
     logger.info("Done!")
