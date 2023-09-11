@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Dict
 
 import boto3
 import pyspark.sql.functions as sf
@@ -17,12 +18,11 @@ def get_snowflake_credentials():
     sms = boto3.client("secretsmanager", region_name="eu-west-1")
     secret = sms.get_secret_value(SecretId="snowflake/capstone/login")
 
-    credentials = json.loads(secret["SecretString"])
-    return credentials
+    return json.loads(secret["SecretString"])
 
 
-if __name__ == "__main__":
-    spark = (
+def get_spark_session(name: str = None) -> SparkSession:
+    return (
         SparkSession.builder.config(
             "spark.jars.packages",
             ",".join(
@@ -37,9 +37,26 @@ if __name__ == "__main__":
             "fs.s3a.aws.credentials.provider",
             "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
         )
+        .appName(name)
         .getOrCreate()
     )
 
+
+def snowflake_config() -> Dict[str, str]:
+    credentials = get_snowflake_credentials()
+    return {
+        "sfURL": credentials["URL"],
+        "sfUser": credentials["USER_NAME"],
+        "sfPassword": credentials["PASSWORD"],
+        "sfDatabase": credentials["DATABASE"],
+        "sfWarehouse": credentials["WAREHOUSE"],
+        "sfRole": credentials["ROLE"],
+        "sfSchema": SNOWFLAKE_SCHEMA,
+    }
+
+
+if __name__ == "__main__":
+    spark = get_spark_session("ingest")
     spark.sparkContext.setLogLevel("ERROR")
 
     logger.info("Reading data from S3...")
@@ -55,20 +72,9 @@ if __name__ == "__main__":
     )
 
     logger.info("Writing data to Snowflake...")
-    credentials = get_snowflake_credentials()
 
-    sfOptions = {
-        "sfURL": credentials["URL"],
-        "sfUser": credentials["USER_NAME"],
-        "sfPassword": credentials["PASSWORD"],
-        "sfDatabase": credentials["DATABASE"],
-        "sfWarehouse": credentials["WAREHOUSE"],
-        "sfRole": credentials["ROLE"],
-        "sfSchema": SNOWFLAKE_SCHEMA,
-    }
-
-    clean.write.format(SNOWFLAKE_SOURCE_NAME).options(**sfOptions).option(
-        "dbtable", "open_aq"
-    ).mode("overwrite").save()
+    clean.write.format(SNOWFLAKE_SOURCE_NAME).options(
+        **snowflake_config()
+    ).option("dbtable", "open_aq").mode("overwrite").save()
 
     logger.info("Done!")
