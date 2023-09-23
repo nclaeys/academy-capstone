@@ -5,18 +5,23 @@ from typing import Dict
 import boto3
 import pyspark.sql.functions as sf
 from pyspark.sql import SparkSession
+import os
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
-SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
-SNOWFLAKE_SCHEMA = "JAN"
+load_dotenv()
+S3_DATA = os.environ["S3_DATA"]
+SECRET_ARN = os.environ["SECRET_ARN"]
+SNOWFLAKE_SCHEMA = os.environ["SNOWFLAKE_SCHEMA"]
+SNOWFLAKE_SOURCE_NAME = os.environ["SNOWFLAKE_SOURCE_NAME"]
 
 
 def get_snowflake_credentials():
     sms = boto3.client("secretsmanager", region_name="eu-west-1")
-    secret = sms.get_secret_value(SecretId="snowflake/capstone/login")
+    secret = sms.get_secret_value(SecretId=SECRET_ARN)
 
     return json.loads(secret["SecretString"])
 
@@ -27,9 +32,9 @@ def get_spark_session(name: str = None) -> SparkSession:
             "spark.jars.packages",
             ",".join(
                 [
-                    "org.apache.hadoop:hadoop-aws:3.3.5",
-                    "net.snowflake:spark-snowflake_2.12:2.9.0-spark_3.1",
-                    "net.snowflake:snowflake-jdbc:3.13.3",
+                    "org.apache.hadoop:hadoop-aws:3.3.6",
+                    "net.snowflake:spark-snowflake_2.12:2.12.0-spark_3.4",
+                    "net.snowflake:snowflake-jdbc:3.14.1",
                 ]
             ),
         )
@@ -60,7 +65,7 @@ if __name__ == "__main__":
     spark.sparkContext.setLogLevel("ERROR")
 
     logger.info("Reading data from S3...")
-    df = spark.read.json("s3a://dataminded-academy-capstone-resources/raw/open_aq/")
+    df = spark.read.json(S3_DATA)
 
     clean = df.select(
         [
@@ -73,8 +78,8 @@ if __name__ == "__main__":
 
     logger.info("Writing data to Snowflake...")
 
-    clean.write.format(SNOWFLAKE_SOURCE_NAME).options(
-        **snowflake_config()
-    ).option("dbtable", "open_aq").mode("overwrite").save()
+    clean.write.format(SNOWFLAKE_SOURCE_NAME).options(**snowflake_config()).option(
+        "dbtable", "open_aq"
+    ).mode("overwrite").save()
 
     logger.info("Done!")

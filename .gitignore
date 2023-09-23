@@ -137,3 +137,5 @@ notebooks
 .terraform
 .terraform*
 *.tfstate*
+
+*.env
